@@ -1,4 +1,4 @@
-## 1 - Two Sum
+## 7 - Reverse Integer
 
 ### Problem statement
 Given a 32-bit signed integer, reverse digits of an integer.
@@ -91,69 +91,113 @@ only 4 bits (this highest is 15!).
 If we don't check our code for overflow, we are likely to get
 unexpected results when provided with extremely large values.
 
-#### EDIT HERE
-
-### Rust solution (approach #2)
-
-A rust solution follows the hashmap pseudocode from above
-quite closely:
-
-Because part of the purpose of this blog is to learn Rust,
-I'm going to highlight details of the language basics that
-I'll omit later.
+### Rust solution (clumsy)
 
 ```Rust
-# import the `HashMap` function right into the namespace
-use std::collections::HashMap;
-
 impl Solution {
-	# We provide our function within the implementation on type "Solution"
-	pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
-		# We call the HashMap constructor using the `new` function
-		let mut elements = HashMap::new();
-
-		# Enumerate is an iterator function (std::iter::enumerate) that
-		# yields (index, value) pairs
-		for (index, element) in nums.iter().enumerate() {
-			let complement = target - element;
-			# The match function evaluates the result of a function call
-			# (in this case, elements.get()) and runs code down the first
-			# "arm" that it encounters.
-			match elements.get(&complement) {
-				# Use the !vec macro to generate a new vector
-				Some(k) => return vec![*k, index as i32],
-				None => ()
-			}
-			elements.insert(element, index as 32);
-		}
-		return vec![0, 0];
-	}
+    pub fn reverse(x: i32) -> i32 {
+        let isPositive = x > 0;
+        let mut accumulator: i32 = 0;
+        let mut mutx = (x.abs());
+        while (mutx >= 1) {
+            let digit: i32 = mutx % 10;
+            // use checked_mul to avoid overflow, evaluates the
+            // `None` arm if overflow is found
+            match accumulator.checked_mul(10) {
+                None => return 0,
+                Some(fine) => {
+                    accumulator = accumulator * 10;
+                }
+            }
+            
+            match accumulator.checked_add(digit) {
+                None => return 0,
+                Some(fine) => {
+                    accumulator = accumulator + digit;
+                }
+            }
+            mutx = mutx / 10;
+        }
+        if (isPositive) {
+            return accumulator;
+        } else {
+            return -accumulator;
+        }
+    }
 }
 ```
 
+This solution passes all the test cases that leetcode provides but
+it has some quirks that we can easily avoid.
+
+Firstly, we can remove additional logic to deal with the negative
+case, namely lines 3 and 23 through 27 simply by making the fix to
+our `while` loop as suggested in the previous section.
+
+Secondly, the match statements can be chained together such that the
+entire `checked_add` function is contained in the "success" arm of
+the `checked_mul` function:
+
+```Rust
+impl Solution {
+    pub fn reverse(x: i32) -> i32 {
+        let mut accumulator: i32 = 0;
+        let mut mutx = x;
+
+        while (mutx != 0) {
+            let digit: i32 = mutx % 10;
+            match accumulator.checked_mul(10) {
+                None => return 0,
+                // By this point, tmp will contain the result of
+                // evaluating `checked_mul(10)` on accumulator
+                Some(tmp) => {
+                    match tmp.checked_add(digit) {
+                        None => return 0,
+                        Some(fine) => {
+                            accumulator = fine;
+                        }
+                    }
+                }
+            }
+            mutx = mutx / 10;
+        }
+        return accumulator;
+    }
+}
+```
+
+Note that in either solution, the first thing we have to do is
+create mutable variables both of the input and output. By default,
+the rust compiler won't mutate x and that's a very good thing.
+
 ### What I learned by solving this problem
 
-#### Iterators
+#### Thinking about the negative case
 
-Iterator indices are stored as *usize* types. This means we need to cast
-them to type *i32* before returning the final vector. Using `as` makes this
-a safe cast that the compiler is ok with.
+My first approach to tackling the negative case was not very elegant;
+instead of looking at how to modify the solution to fit the case, I
+thought about how to modify the case to fit the solution (taking the
+absolute value and then "re-reversing" it). This pattern should serve
+as a warning to me in the future that there is probably a better way
+to accomplish this.
 
-Note though that a usize integer could be bigger than i32 and the values could
-end up truncated in the process.
+#### Checked functions
 
-#### HashMaps
+Clearly although Rust is a lot more stringent than other languages,
+problems like these can still sideline you if you're not careful.
+Rust's default add and multiply operations don't handle overflow
+(and justifiably so - one might want to handle it their own way)
+and that simply means we need to reach deeper into our toolbox for
+the right tool to deal with that job. Checked functions are a useful
+tool in that regard, and they seem to work great!
 
-The `.get()` function of HashMap takes a reference to an element. Thus
-we need to pass the complement by taking its reference (&).
+#### Getting used to "match"
 
-Similarly, in the `Some` arm of the match statement, where we return
-the answer, we have to dereference the result (*).
-
-It might be intuitive to add our new element to the map in the `None =>` arm
-of the match statement but we cannot do this because the `map.get()` function
-**borrows** map for the entirety of the block, so we can't insert into it.
+Match is a little foreign to a Rust newbie like myself but his problem
+provided some decent experience working with it. An important lesson
+I learned was that the `Some` arm stores the *evaluation* of the
+statement in question so there's no need for intermediate "mumbo jumbo".
 
 ### References
-1. [HashMap get explanation](https://stackoverflow.com/questions/41423809/create-a-hashmapi32-i32-in-rust)
-2. [enumerate (official rust docs)](https://doc.rust-lang.org/core/iter/trait.Iterator.html#method.enumerate)
+1. [Submission that led me to my answer](https://leetcode.com/problems/reverse-integer/discuss/293960/Rust%3A-use-checked-ops-to-check-overflow-0ms-2.3mb)
+2. [Checked add for i32](https://doc.rust-lang.org/std/primitive.i32.html#method.checked_add)
