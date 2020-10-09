@@ -95,35 +95,35 @@ unexpected results when provided with extremely large values.
 
 ```Rust
 impl Solution {
-    pub fn reverse(x: i32) -> i32 {
-        let isPositive = x > 0;
-        let mut accumulator: i32 = 0;
-        let mut mutx = (x.abs());
-        while (mutx >= 1) {
-            let digit: i32 = mutx % 10;
-            // use checked_mul to avoid overflow, evaluates the
-            // `None` arm if overflow is found
-            match accumulator.checked_mul(10) {
-                None => return 0,
-                Some(fine) => {
-                    accumulator = accumulator * 10;
-                }
-            }
-            
-            match accumulator.checked_add(digit) {
-                None => return 0,
-                Some(fine) => {
-                    accumulator = accumulator + digit;
-                }
-            }
-            mutx = mutx / 10;
+  pub fn reverse(x: i32) -> i32 {
+    let isPositive = x > 0;
+    let mut accumulator: i32 = 0;
+    let mut mutx = (x.abs());
+    while (mutx >= 1) {
+      let digit: i32 = mutx % 10;
+      // use checked_mul to avoid overflow, evaluates the
+      // `None` arm if overflow is found
+      match accumulator.checked_mul(10) {
+        None => return 0,
+        Some(fine) => {
+          accumulator = accumulator * 10;
         }
-        if (isPositive) {
-            return accumulator;
-        } else {
-            return -accumulator;
+      }
+
+      match accumulator.checked_add(digit) {
+        None => return 0,
+        Some(fine) => {
+          accumulator = accumulator + digit;
         }
+      }
+      mutx = mutx / 10;
     }
+    if (isPositive) {
+      return accumulator;
+    } else {
+      return -accumulator;
+    }
+  }
 }
 ```
 
@@ -140,29 +140,29 @@ the `checked_mul` function:
 
 ```Rust
 impl Solution {
-    pub fn reverse(x: i32) -> i32 {
-        let mut accumulator: i32 = 0;
-        let mut mutx = x;
+  pub fn reverse(x: i32) -> i32 {
+    let mut accumulator: i32 = 0;
+    let mut mutx = x;
 
-        while (mutx != 0) {
-            let digit: i32 = mutx % 10;
-            match accumulator.checked_mul(10) {
-                None => return 0,
-                // By this point, tmp will contain the result of
-                // evaluating `checked_mul(10)` on accumulator
-                Some(tmp) => {
-                    match tmp.checked_add(digit) {
-                        None => return 0,
-                        Some(fine) => {
-                            accumulator = fine;
-                        }
-                    }
-                }
+    while (mutx != 0) {
+      let digit: i32 = mutx % 10;
+      match accumulator.checked_mul(10) {
+        None => return 0,
+        // By this point, tmp will contain the result of
+        // evaluating `checked_mul(10)` on accumulator
+        Some(tmp) => {
+          match tmp.checked_add(digit) {
+            None => return 0,
+            Some(fine) => {
+              accumulator = fine;
             }
-            mutx = mutx / 10;
+          }
         }
-        return accumulator;
+      }
+      mutx = mutx / 10;
     }
+    return accumulator;
+  }
 }
 ```
 

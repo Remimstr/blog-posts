@@ -30,20 +30,20 @@ The pseudocode for this looks something like:
 
 ```
 for (first_element, first_index) in array:
-	for (second_element, second_index) in array:
-		if (first_element + second_element == total
-			&& first_index !== second_index):
-			return [first_index, second_index]
-		else:
-			continue
+  for (second_element, second_index) in array:
+    if (first_element + second_element == total
+      && first_index !== second_index):
+      return [first_index, second_index]
+    else:
+      continue
 ```
 
 Clearly this is far from the ideal solution if we want to optimize
 for time:
 - 0(n^2) time complexity
-	- Because we iterate through the array twice
+  - Because we iterate through the array twice
 - 0(1) space complexity
-	- We only need to store 2 values as we iterate
+  - We only need to store 2 values as we iterate
 
 #### 2 - Hashmap Approach
 Using a hashmap can help us trade some of our time for space.
@@ -68,6 +68,14 @@ for (element, index) in array:
     map.insert((complement, index))
 ```
 
+This solution trades space for speed and will probably be the
+optimal solution in most scenarios:
+- 0(n) time complexity
+  - We only iterate through the array once
+- 0(n) space complexity
+  - We may have to store up to all the elements in the HashMap
+    (if the complement is at the end)
+
 ### Rust solution (approach #2)
 
 A rust solution follows the hashmap pseudocode from above
@@ -77,32 +85,32 @@ Because part of the purpose of this blog is to learn Rust,
 I'm going to highlight details of the language basics that
 I'll omit later.
 
-```Rust
+```rust
 # import the `HashMap` function right into the namespace
 use std::collections::HashMap;
 
 impl Solution {
-	# We provide our function within the implementation on type "Solution"
-	pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
-		# We call the HashMap constructor using the `new` function
-		let mut elements = HashMap::new();
+  # We provide our function within the implementation on type "Solution"
+  pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
+    # We call the HashMap constructor using the `new` function
+    let mut elements = HashMap::new();
 
-		# Enumerate is an iterator function (std::iter::enumerate) that
-		# yields (index, value) pairs
-		for (index, element) in nums.iter().enumerate() {
-			let complement = target - element;
-			# The match function evaluates the result of a function call
-			# (in this case, elements.get()) and runs code down the first
-			# "arm" that it encounters.
-			match elements.get(&complement) {
-				# Use the !vec macro to generate a new vector
-				Some(k) => return vec![*k, index as i32],
-				None => ()
-			}
-			elements.insert(element, index as 32);
-		}
-		return vec![0, 0];
-	}
+    # Enumerate is an iterator function (std::iter::enumerate) that
+    # yields (index, value) pairs
+    for (index, element) in nums.iter().enumerate() {
+      let complement = target - element;
+      # The match function evaluates the result of a function call
+      # (in this case, elements.get()) and runs code down the first
+      # "arm" that it encounters.
+      match elements.get(&complement) {
+        # Use the !vec macro to generate a new vector
+        Some(k) => return vec![*k, index as i32],
+        None => ()
+      }
+      elements.insert(element, index as 32);
+    }
+    return vec![0, 0];
+  }
 }
 ```
 
